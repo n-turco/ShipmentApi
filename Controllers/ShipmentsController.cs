@@ -50,6 +50,11 @@ namespace ShipmentApi.Controllers
             shipment.DeliveredAt = null;
 
             context.Shipments.Add(shipment);
+            if(await context.Shipments.AnyAsync(s => s.TrackingNumber == shipment.TrackingNumber))
+            {
+                return Conflict($"A shipment with tracking number `{shipment.TrackingNumber}` already exists");
+            }
+
             await context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetShipment), new { id = shipment.Id }, shipment);
@@ -63,6 +68,11 @@ namespace ShipmentApi.Controllers
             if (shipment is null)
             {
                 return NotFound();
+            }
+            
+            if(await context.Shipments.AnyAsync(s => s.TrackingNumber == shipment.TrackingNumber && s.Id != id))
+            {
+                return Conflict($"A Shipment with tracking number `{updated.TrackingNumber}` already exists.");
             }
 
             shipment.Origin = updated.Origin;

@@ -12,6 +12,7 @@ namespace ShipmentApi.Models
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? DeliveredAt { get; set; }
         [Required]
+        [MaxLength(50)]
         public string TrackingNumber { get; set; } = string.Empty;
         public string? Carrier { get; set; }
         public DateTime? EstimatedDeliveryDate { get; set; }

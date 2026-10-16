@@ -16,6 +16,9 @@ namespace ShipmentApi.Data
                 .Property(s => s.Status)
                 .HasConversion<string>()   // store "Delivered", not 2
                 .HasMaxLength(20);
+            modelBuilder.Entity<Shipment>()   // Ensures each tracking number is unique
+                .HasIndex(s => s.TrackingNumber)
+                .IsUnique();
         }
     }
 }
