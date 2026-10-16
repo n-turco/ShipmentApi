@@ -21,10 +21,10 @@ POST {{ShipmentApi_HostAddress}}/api/shipments
 Content-Type: application/json
 
 {
-  "origin": "Toronto, ON",
-  "destination": "Vancouver, BC",
-  "trackingNumber": "1Z999AA10123456784",
-  "carrier": "UPS",
+  "origin": "Guelph, ON",
+  "destination": "Cambridge, ON",
+  "trackingNumber": "2D567FF23134567953",
+  "carrier": "Fedex",
   "shippingMethod": "Ground",
   "estimatedDeliveryDate": "2026-10-23T00:00:00Z"
 }

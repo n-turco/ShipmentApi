@@ -49,11 +49,13 @@ namespace ShipmentApi.Controllers
             shipment.UpdatedAt = shipment.CreatedAt;
             shipment.DeliveredAt = null;
 
-            context.Shipments.Add(shipment);
-            if(await context.Shipments.AnyAsync(s => s.TrackingNumber == shipment.TrackingNumber))
+            // Check if the tracking number on the new shipment is already being used by another shipment
+            if (await context.Shipments.AnyAsync(s => s.TrackingNumber == shipment.TrackingNumber))
             {
-                return Conflict($"A shipment with tracking number `{shipment.TrackingNumber}` already exists");
+                return Conflict($"A Shipment with tracking number '{shipment.TrackingNumber}' already exists.");
             }
+
+            context.Shipments.Add(shipment);
 
             await context.SaveChangesAsync();
 
@@ -64,15 +66,17 @@ namespace ShipmentApi.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateShipment(int id, Shipment updated)
         {
+            // Search the database for matching shipment ID, return not found if no match is found
             var shipment = await context.Shipments.FindAsync(id);
             if (shipment is null)
             {
                 return NotFound();
             }
-            
-            if(await context.Shipments.AnyAsync(s => s.TrackingNumber == shipment.TrackingNumber && s.Id != id))
+
+            // Return a conflict error message with status 409 if the tracking number matches the updated tracking number and the id is not the same
+            if (await context.Shipments.AnyAsync(s => s.TrackingNumber == updated.TrackingNumber && s.Id != id))
             {
-                return Conflict($"A Shipment with tracking number `{updated.TrackingNumber}` already exists.");
+                return Conflict($"A Shipment with tracking number '{updated.TrackingNumber}' already exists.");
             }
 
             shipment.Origin = updated.Origin;

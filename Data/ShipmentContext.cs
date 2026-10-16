@@ -5,7 +5,7 @@ using ShipmentApi.Models;
 
 namespace ShipmentApi.Data
 {
-    public class ShipmentContext(DbContextOptions<ShipmentContext> options) : DbContext(options) 
+    public class ShipmentContext(DbContextOptions<ShipmentContext> options) : DbContext(options)
     {
         public DbSet<Shipment> Shipments { get; set; }
 

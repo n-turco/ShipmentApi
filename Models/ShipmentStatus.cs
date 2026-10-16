@@ -1,4 +1,5 @@
 namespace ShipmentApi.Models;
+
 public enum ShipmentStatus
 {
     Created,
