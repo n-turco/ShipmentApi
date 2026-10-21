@@ -21,25 +21,26 @@ POST {{ShipmentApi_HostAddress}}/api/shipments
 Content-Type: application/json
 
 {
+  "id": 999,
   "origin": "Guelph, ON",
   "destination": "Cambridge, ON",
-  "trackingNumber": "2D567FF23134567953",
+  "trackingNumber": "2D568DD83134567953",
   "carrier": "Fedex",
   "shippingMethod": "Ground",
   "estimatedDeliveryDate": "2026-10-23T00:00:00Z"
 }
 
 ### Update a shipment
-PUT {{ShipmentApi_HostAddress}}/api/shipments/1
+PUT {{ShipmentApi_HostAddress}}/api/shipments/3
 Content-Type: application/json
 
 {
-  "origin": "Toronto, ON",
-  "destination": "Victoria, BC",
+  "origin": "Chicago, IL",
+  "destination": "Denver, CO",
   "trackingNumber": "1Z999AA10123456784",
   "carrier": "UPS",
-  "shippingMethod": "Express",
-  "status": "InTransit"
+  "estimatedDeliveryDate": "2026-10-28T00:00:00Z",
+  "shippingMethod": "Ground"
 }
 
 ### Change status only

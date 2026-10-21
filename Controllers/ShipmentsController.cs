@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShipmentApi.Data;
 using ShipmentApi.Models;
+using ShipmentApi.Dtos;
 
 namespace ShipmentApi.Controllers
 {
@@ -41,30 +42,32 @@ namespace ShipmentApi.Controllers
 
         // POST: api/shipments
         [HttpPost]
-        public async Task<ActionResult<Shipment>> CreateShipment(Shipment shipment)
+        public async Task<ActionResult<Shipment>> CreateShipment(ShipmentRequest request)
         {
-            // Server-managed fields: ignore whatever the client sent
-            shipment.Id = 0;
-            shipment.CreatedAt = DateTime.UtcNow;
-            shipment.UpdatedAt = shipment.CreatedAt;
-            shipment.DeliveredAt = null;
-
             // Check if the tracking number on the new shipment is already being used by another shipment
-            if (await context.Shipments.AnyAsync(s => s.TrackingNumber == shipment.TrackingNumber))
+            if (await context.Shipments.AnyAsync(s => s.TrackingNumber == request.TrackingNumber))
             {
-                return Conflict($"A Shipment with tracking number '{shipment.TrackingNumber}' already exists.");
+                return Conflict($"A Shipment with tracking number '{request.TrackingNumber}' already exists.");
             }
 
+            var shipment = new Shipment
+            {
+                Origin = request.Origin,
+                Destination = request.Destination,
+                TrackingNumber = request.TrackingNumber,
+                Carrier = request.Carrier,
+                EstimatedDeliveryDate = request.EstimatedDeliveryDate,
+                ShippingMethod = request.ShippingMethod
+            };
+
             context.Shipments.Add(shipment);
-
             await context.SaveChangesAsync();
-
             return CreatedAtAction(nameof(GetShipment), new { id = shipment.Id }, shipment);
         }
 
         // PUT: api/shipments/5
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> UpdateShipment(int id, Shipment updated)
+        public async Task<IActionResult> UpdateShipment(int id, ShipmentRequest request)
         {
             // Search the database for matching shipment ID, return not found if no match is found
             var shipment = await context.Shipments.FindAsync(id);
@@ -73,19 +76,19 @@ namespace ShipmentApi.Controllers
                 return NotFound();
             }
 
-            // Return a conflict error message with status 409 if the tracking number matches the updated tracking number and the id is not the same
-            if (await context.Shipments.AnyAsync(s => s.TrackingNumber == updated.TrackingNumber && s.Id != id))
+            // Return 409 Conflict if another shipment already uses the new tracking number
+            if (await context.Shipments.AnyAsync(s => s.TrackingNumber == request.TrackingNumber && s.Id != id))
             {
-                return Conflict($"A Shipment with tracking number '{updated.TrackingNumber}' already exists.");
+                return Conflict($"A Shipment with tracking number '{request.TrackingNumber}' already exists.");
             }
 
-            shipment.Origin = updated.Origin;
-            shipment.Destination = updated.Destination;
-            shipment.TrackingNumber = updated.TrackingNumber;
-            shipment.Carrier = updated.Carrier;
-            shipment.EstimatedDeliveryDate = updated.EstimatedDeliveryDate;
-            shipment.ShippingMethod = updated.ShippingMethod;
-            ApplyStatus(shipment, updated.Status);
+            shipment.Origin = request.Origin;
+            shipment.Destination = request.Destination;
+            shipment.TrackingNumber = request.TrackingNumber;
+            shipment.Carrier = request.Carrier;
+            shipment.EstimatedDeliveryDate = request.EstimatedDeliveryDate;
+            shipment.ShippingMethod = request.ShippingMethod;
+            shipment.UpdatedAt = DateTime.UtcNow;
 
             await context.SaveChangesAsync();
             return NoContent();
