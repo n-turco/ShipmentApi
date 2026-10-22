@@ -12,37 +12,37 @@ namespace ShipmentApi.Controllers
     {
         // GET: api/shipments?status=InTransit
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Shipment>>> GetShipments([FromQuery] ShipmentStatus? status)
+        public async Task<ActionResult<IEnumerable<ShipmentResponse>>> GetShipments([FromQuery] ShipmentStatus? status)
         {
             var query = context.Shipments.AsNoTracking();
             if (status is not null)
             {
                 query = query.Where(s => s.Status == status);
             }
-            return await query.OrderByDescending(s => s.CreatedAt).ToListAsync();
+            return await query.OrderByDescending(s => s.CreatedAt).Select(s => ShipmentResponse.FromEntity(s)).ToListAsync();
         }
 
         // GET: api/shipments/5
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<Shipment>> GetShipment(int id)
+        public async Task<ActionResult<ShipmentResponse>> GetShipment(int id)
         {
             var shipment = await context.Shipments.FindAsync(id);
-            return shipment is null ? NotFound() : shipment;
+            return shipment is null ? NotFound() : ShipmentResponse.FromEntity(shipment);
         }
 
         // GET: api/shipments/tracking/1Z999AA10123456784
         [HttpGet("tracking/{trackingNumber}")]
-        public async Task<ActionResult<Shipment>> GetByTrackingNumber(string trackingNumber)
+        public async Task<ActionResult<ShipmentResponse>> GetByTrackingNumber(string trackingNumber)
         {
             var shipment = await context.Shipments
                 .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.TrackingNumber == trackingNumber);
-            return shipment is null ? NotFound() : shipment;
+            return shipment is null ? NotFound() : ShipmentResponse.FromEntity(shipment);
         }
 
         // POST: api/shipments
         [HttpPost]
-        public async Task<ActionResult<Shipment>> CreateShipment(ShipmentRequest request)
+        public async Task<ActionResult<ShipmentResponse>> CreateShipment(ShipmentRequest request)
         {
             // Check if the tracking number on the new shipment is already being used by another shipment
             if (await context.Shipments.AnyAsync(s => s.TrackingNumber == request.TrackingNumber))
@@ -62,7 +62,7 @@ namespace ShipmentApi.Controllers
 
             context.Shipments.Add(shipment);
             await context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetShipment), new { id = shipment.Id }, shipment);
+            return CreatedAtAction(nameof(GetShipment), new { id = shipment.Id }, ShipmentResponse.FromEntity(shipment));
         }
 
         // PUT: api/shipments/5

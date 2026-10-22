@@ -31,7 +31,7 @@ Content-Type: application/json
 }
 
 ### Update a shipment
-PUT {{ShipmentApi_HostAddress}}/api/shipments/3
+PUT {{ShipmentApi_HostAddress}}/api/shipments/1
 Content-Type: application/json
 
 {
