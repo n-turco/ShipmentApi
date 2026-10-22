@@ -3,12 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using ShipmentApi.Data;
 using ShipmentApi.Models;
 using ShipmentApi.Dtos;
+using Microsoft.Data.SqlClient;
 
 namespace ShipmentApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ShipmentsController(ShipmentContext context) : ControllerBase
+    public class ShipmentsController(ShipmentContext context, ILogger<ShipmentsController> logger) : ControllerBase
     {
         // GET: api/shipments?status=InTransit
         [HttpGet]
@@ -61,7 +62,17 @@ namespace ShipmentApi.Controllers
             };
 
             context.Shipments.Add(shipment);
-            await context.SaveChangesAsync();
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+            {
+                logger.LogWarning(ex, "Duplicate tracking number {TrackingNumber} rejected by the database.", request.TrackingNumber);
+                // Another request saved the same tracking number after our AnyAsync check
+                return Conflict($"A Shipment with tracking number '{request.TrackingNumber}' already exists.");
+            }
+
             return CreatedAtAction(nameof(GetShipment), new { id = shipment.Id }, ShipmentResponse.FromEntity(shipment));
         }
 
@@ -90,7 +101,17 @@ namespace ShipmentApi.Controllers
             shipment.ShippingMethod = request.ShippingMethod;
             shipment.UpdatedAt = DateTime.UtcNow;
 
-            await context.SaveChangesAsync();
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+            {
+                logger.LogWarning(ex, "Duplicate tracking number {TrackingNumber} rejected by the database.", request.TrackingNumber);
+                // Another request saved the same tracking number after our AnyAsync check
+                return Conflict($"A Shipment with tracking number '{request.TrackingNumber}' already exists.");
+            }
+
             return NoContent();
         }
 
@@ -140,5 +161,8 @@ namespace ShipmentApi.Controllers
             shipment.Status = status;
             shipment.UpdatedAt = DateTime.UtcNow;
         }
+
+        private static bool IsUniqueViolation(DbUpdateException ex) =>
+            ex.InnerException is SqlException { Number: 2601 or 2627 }; 
     }
 }
