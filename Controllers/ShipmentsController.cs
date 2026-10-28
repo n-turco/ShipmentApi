@@ -125,6 +125,18 @@ namespace ShipmentApi.Controllers
                 return NotFound();
             }
 
+            // Same status: nothing to change, and UpdatedAt stays as it is
+            if (shipment.Status == status)
+            {
+                return NoContent();
+            }
+
+            // Return 409 Conflict if the workflow doesn't allow this change
+            if (!ShipmentStatusTransitions.CanTransition(shipment.Status, status))
+            {
+                return Conflict($"Cannot change status from '{shipment.Status}' to '{status}'.");
+            }
+
             ApplyStatus(shipment, status);
 
             await context.SaveChangesAsync();

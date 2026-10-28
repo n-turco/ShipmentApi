@@ -55,5 +55,29 @@ Content-Type: application/json
 
 99
 
+### Invalid transition: Created -> Delivered (expect 409)
+PATCH {{ShipmentApi_HostAddress}}/api/shipments/2/status
+Content-Type: application/json
+
+"Delivered"
+
+### Valid transition: Created -> Pending (expect 204)
+PATCH {{ShipmentApi_HostAddress}}/api/shipments/2/status
+Content-Type: application/json
+
+"Pending"
+
+### Same status: Pending -> Pending (expect 204, UpdatedAt unchanged)
+PATCH {{ShipmentApi_HostAddress}}/api/shipments/2/status
+Content-Type: application/json
+
+"Pending"
+
+### Going backwards: Pending -> Created (expect 409)
+PATCH {{ShipmentApi_HostAddress}}/api/shipments/2/status
+Content-Type: application/json
+
+"Created"
+
 ### Delete a shipment
 DELETE {{ShipmentApi_HostAddress}}/api/shipments/1
