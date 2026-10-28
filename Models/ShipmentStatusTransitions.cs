@@ -1,6 +1,7 @@
 ﻿namespace ShipmentApi.Models
 {
-    public class ShipmentStatusTransitions
+    // Which statuses a shipment may move to from its current status
+    public static class ShipmentStatusTransitions
     {
         private static readonly Dictionary<ShipmentStatus, ShipmentStatus[]> Allowed = new()
         {
