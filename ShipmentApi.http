@@ -49,5 +49,11 @@ Content-Type: application/json
 
 "Delivered"
 
+### Test request rejects numeric values (return 400)
+PATCH {{ShipmentApi_HostAddress}}/api/shipments/1/status
+Content-Type: application/json
+
+99
+
 ### Delete a shipment
 DELETE {{ShipmentApi_HostAddress}}/api/shipments/1
