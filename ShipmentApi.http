@@ -27,7 +27,7 @@ Content-Type: application/json
   "trackingNumber": "2D568DD83134567953",
   "carrier": "Fedex",
   "shippingMethod": "Ground",
-  "estimatedDeliveryDate": "2026-10-23T00:00:00Z"
+  "estimatedDeliveryDate": "2026-11-15T00:00:00Z"
 }
 
 ### Update a shipment
@@ -80,4 +80,35 @@ Content-Type: application/json
 "Created"
 
 ### Delete a shipment
-DELETE {{ShipmentApi_HostAddress}}/api/shipments/1
+DELETE {{ShipmentApi_HostAddress}}/api/shipments/5
+
+### Validation: missing origin, bad tracking number
+POST {{ShipmentApi_HostAddress}}/api/shipments
+Content-Type: application/json
+
+{
+  "origin": "",
+  "destination": "Cambridge, ON",
+  "trackingNumber": "ABC 123!"
+}
+
+### Validation: same origin and destination
+POST {{ShipmentApi_HostAddress}}/api/shipments
+Content-Type: application/json
+
+{
+  "origin": "Guelph, ON",
+  "destination": "guelph, on ",
+  "trackingNumber": "VALTEST0001"
+}
+
+### Validation: delivery date in the past
+POST {{ShipmentApi_HostAddress}}/api/shipments
+Content-Type: application/json
+
+{
+  "origin": "Guelph, ON",
+  "destination": "Cambridge, ON",
+  "trackingNumber": "VALTEST0002",
+  "estimatedDeliveryDate": "2020-01-01T00:00:00Z"
+}

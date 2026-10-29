@@ -45,6 +45,12 @@ namespace ShipmentApi.Controllers
         [HttpPost]
         public async Task<ActionResult<ShipmentResponse>> CreateShipment(ShipmentRequest request)
         {
+            if (request.EstimatedDeliveryDate is not null && request.EstimatedDeliveryDate.Value.Date < DateTime.UtcNow.Date)
+            {
+                ModelState.AddModelError(nameof(request.EstimatedDeliveryDate), "Estimated delivery date cannot be in the past.");
+                return ValidationProblem(ModelState);
+            }
+
             // Check if the tracking number on the new shipment is already being used by another shipment
             if (await context.Shipments.AnyAsync(s => s.TrackingNumber == request.TrackingNumber))
             {
@@ -175,6 +181,6 @@ namespace ShipmentApi.Controllers
         }
 
         private static bool IsUniqueViolation(DbUpdateException ex) =>
-            ex.InnerException is SqlException { Number: 2601 or 2627 }; 
+            ex.InnerException is SqlException { Number: 2601 or 2627 };
     }
 }
