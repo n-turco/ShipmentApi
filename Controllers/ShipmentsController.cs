@@ -13,14 +13,32 @@ namespace ShipmentApi.Controllers
     {
         // GET: api/shipments?status=InTransit
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ShipmentResponse>>> GetShipments([FromQuery] ShipmentStatus? status)
+        public async Task<ActionResult<PagedResponse<ShipmentResponse>>> GetShipments([FromQuery] ShipmentQuery query)
         {
-            var query = context.Shipments.AsNoTracking();
-            if (status is not null)
+            var shipments = context.Shipments.AsNoTracking();
+            if (query.Status is not null)
             {
-                query = query.Where(s => s.Status == status);
+                shipments = shipments.Where(s => s.Status == query.Status);
             }
-            return await query.OrderByDescending(s => s.CreatedAt).Select(s => ShipmentResponse.FromEntity(s)).ToListAsync();
+
+            // Count before paging so the total covers every matching row
+            var totalCount = await shipments.CountAsync();
+
+            var items = await shipments
+                .OrderByDescending(s => s.CreatedAt)
+                .ThenByDescending(s => s.Id)
+                .Skip((query.Page - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .Select(s => ShipmentResponse.FromEntity(s))
+                .ToListAsync();
+
+            return new PagedResponse<ShipmentResponse>
+            {
+                Items = items,
+                Page = query.Page,
+                PageSize = query.PageSize,
+                TotalCount = totalCount
+            };
         }
 
         // GET: api/shipments/5
